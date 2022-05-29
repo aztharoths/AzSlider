@@ -1,0 +1,30 @@
+.AzSlider,
+.AzSlider * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.AzSlider {
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.AzSlider__AzSlides-container {
+  position: relative;
+  display: flex;
+  justify-content: space-evenly;
+  overflow-x: hidden;
+}
+.AzSlider__AzSlides-container--transition-stoped {
+  transition: transform 0ms;
+}
+
+.AzSlider__AzSlides-container__AzSlide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*# sourceMappingURL=AzSlider.css.map */

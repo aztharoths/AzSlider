@@ -1,0 +1,25 @@
+body {
+    background-color: black;
+}
+.slide {
+    width: 250px;
+    height: 250px;
+}
+.red {
+    background-color: darkred;
+}
+.blue {
+    background-color: darkblue;
+}
+.green {
+    background-color: darkgreen;
+}
+.yellow {
+    background-color: darkgoldenrod;
+}
+.purple {
+    background-color: darkmagenta;
+}
+.brown {
+    background-color: brown;
+}

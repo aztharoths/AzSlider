@@ -1,5 +1,6 @@
 import Utils from "./Utils.js";
 import AzSlide from "./AzSlide.js";
+import AutoMoveDirection from "./AutoMoveDirection.js";
 
 const defaultOptions = {
     AzSlidesToShow: 3,
@@ -10,6 +11,9 @@ const defaultOptions = {
     transitionDuration: 300,
     transitionTimingFunction: "linear",
     infiniteLoop: true,
+    autoMove: false,
+    autoMoveDelay: 5000,
+    mouseStopAutoMove: true,
 };
 
 export default class AzSlider {
@@ -25,6 +29,9 @@ export default class AzSlider {
      * @param {Number} options.transitionDuration in ms
      * @param {String} options.transitionTimingFunction
      * @param {Boolean} options.infiniteLoop
+     * @param {Boolean} options.autoMove
+     * @param {Number} options.autoMoveDelay in ms
+     * @param {Boolean} options.mouseStopAutoMove
      */
     constructor(slideContainer, options) {
         //-------------------- OPTIONS --------------------//
@@ -68,6 +75,24 @@ export default class AzSlider {
         this.position = this.#initPosition();
 
         //-------------------- /INIT VARIABLES --------------------//
+
+        //-------------------- AUTOMOVE --------------------//
+
+        if (this.options.autoMove) {
+            this.autoMoveDirection = AutoMoveDirection.Next;
+            this.autoMoveIntervalPaused = false;
+            this.autoMoveInterval = this.#autoMove();
+            if (this.options.mouseStopAutoMove) {
+                this.AzSlider.addEventListener("mouseenter", (e) => {
+                    this.autoMoveIntervalPaused = true;
+                });
+                this.AzSlider.addEventListener("mouseleave", (e) => {
+                    this.autoMoveIntervalPaused = false;
+                });
+            }
+        }
+
+        //-------------------- /AUTOMOVE --------------------//
     }
 
     //-------------------- SAVE SLIDES --------------------//
@@ -256,9 +281,23 @@ export default class AzSlider {
 
     #prevButtonFunction() {
         this.#moveBackward();
+        if (this.options.autoMove) {
+            this.autoMoveDirection = AutoMoveDirection.Prev;
+            clearInterval(this.autoMoveInterval);
+            setTimeout(() => {
+                this.autoMoveInterval = this.#autoMove();
+            }, this.options.transitionDuration);
+        }
     }
     #nextButtonFunction() {
         this.#moveForward();
+        if (this.options.autoMove) {
+            this.autoMoveDirection = AutoMoveDirection.Next;
+            clearInterval(this.autoMoveInterval);
+            setTimeout(() => {
+                this.autoMoveInterval = this.#autoMove();
+            }, this.options.transitionDuration);
+        }
     }
 
     #hiddeButton(button) {
@@ -344,4 +383,34 @@ export default class AzSlider {
     }
 
     //-------------------- /INIT VARIABLES --------------------//
+
+    //-------------------- AUTOMOVE --------------------//
+
+    #autoMove() {
+        const autoMoveInterval = setInterval(() => {
+            if (this.autoMoveIntervalPaused) {
+                return;
+            }
+            switch (this.autoMoveDirection) {
+                case AutoMoveDirection.Next:
+                    this.#moveForward();
+                    break;
+                case AutoMoveDirection.Prev:
+                    this.#moveBackward();
+                    break;
+                default:
+                    break;
+            }
+            if (
+                !this.options.infiniteLoop &&
+                this.position > this.AzSlidesCount - this.options.AzSlidesToShow - 1
+            ) {
+                this.autoMoveDirection = AutoMoveDirection.Prev;
+            }
+            if (!this.options.infiniteLoop && this.position <= 0)
+                this.autoMoveDirection = AutoMoveDirection.Next;
+        }, this.options.autoMoveDelay);
+        return autoMoveInterval;
+    }
+    //-------------------- /AUTOMOVE --------------------//
 }

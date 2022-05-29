@@ -9,6 +9,7 @@ const defaultOptions = {
     nextButtonInnerHTML: ">",
     transitionDuration: 300,
     transitionTimingFunction: "linear",
+    infiniteLoop: true,
 };
 
 export default class AzSlider {
@@ -23,6 +24,7 @@ export default class AzSlider {
      * @param {String} options.nextButtonInnerHTML
      * @param {Number} options.transitionDuration in ms
      * @param {String} options.transitionTimingFunction
+     * @param {Boolean} options.infiniteLoop
      */
     constructor(slideContainer, options) {
         //-------------------- OPTIONS --------------------//
@@ -110,15 +112,50 @@ export default class AzSlider {
         this.AzSlidesCount++;
     }
 
+    #duplicatePrevAzSlides() {
+        for (let i = 0; i < this.options.AzSlidesToShow; i++) {
+            const duplicateSlide =
+                this.savedSlides[
+                    this.savedSlides.length - this.options.AzSlidesToShow + i
+                ].cloneNode(true);
+            this.#addAzSlide(duplicateSlide);
+        }
+    }
+    #duplicateNextAzSlides() {
+        for (let i = 0; i < this.options.AzSlidesToShow; i++) {
+            const duplicateSlide = this.savedSlides[i].cloneNode(true);
+            this.#addAzSlide(duplicateSlide);
+        }
+    }
+
     #createAzSlides() {
+        if (this.options.infiniteLoop) this.#duplicatePrevAzSlides();
+
         for (let i = 0; i < this.savedSlides.length; i++) {
             this.#addAzSlide(this.savedSlides[i]);
         }
+
+        if (this.options.infiniteLoop) this.#duplicateNextAzSlides();
     }
 
     //-------------------- /CREATE AZSLIDES --------------------//
 
     //-------------------- CREATE NAVIGATION --------------------//
+    #pauseTransition() {
+        this.buttonIsActive = false;
+        this.AzSlidesContainer.removeAttribute("style");
+        this.AzSlidesContainer.style.width = this.AzSliderWidth + "px";
+        setTimeout(() => {
+            this.buttonIsActive = true;
+            this.AzSlidesContainer.style.transition =
+                "transform " +
+                this.options.transitionDuration +
+                "ms " +
+                this.options.transitionTimingFunction +
+                " 0ms";
+        }, 50);
+    }
+
     #moveTo(position) {
         this.AzSlidesContainer.style.transform =
             "translateX(-" + position * this.AzSlideWidth + "px)";
@@ -153,9 +190,24 @@ export default class AzSlider {
 
         //-------------------- MANAGE BUTTONS --------------------//
 
-        this.#manageButtons(position);
+        if (!this.options.infiniteLoop) this.#manageButtons(position);
 
         //-------------------- /MANAGE BUTTONS --------------------//
+
+        //-------------------- MANAGE POSITION --------------------//
+
+        if (
+            this.options.infiniteLoop &&
+            position > this.AzSlidesCount - this.options.AzSlidesToShow - 1
+        ) {
+            setTimeout(() => {
+                this.#pauseTransition();
+                position = this.options.AzSlidesToShow;
+                this.#moveTo(position);
+            }, this.options.transitionDuration);
+        }
+
+        //-------------------- /MANAGE POSITION --------------------//
     }
     #moveBackward() {
         //-------------------- IS BUTTON ACTIVE --------------------//
@@ -185,9 +237,21 @@ export default class AzSlider {
 
         //-------------------- MANAGE BUTTONS --------------------//
 
-        this.#manageButtons(position);
+        if (!this.options.infiniteLoop) this.#manageButtons(position);
 
         //-------------------- /MANAGE BUTTONS --------------------//
+
+        //-------------------- MANAGE POSITION --------------------//
+
+        if (this.options.infiniteLoop && position <= 0) {
+            setTimeout(() => {
+                this.#pauseTransition();
+                position = this.AzSlidesCount - this.options.AzSlidesToShow * 2;
+                this.#moveTo(position);
+            }, this.options.transitionDuration);
+        }
+
+        //-------------------- /MANAGE POSITION --------------------//
     }
 
     #prevButtonFunction() {
@@ -235,7 +299,7 @@ export default class AzSlider {
         prevButton.addEventListener("click", (e) => {
             this.#prevButtonFunction();
         });
-        this.#hiddeButton(prevButton);
+        if (!this.options.infiniteLoop) this.#hiddeButton(prevButton);
 
         //-------------------- /PREV BUTTON --------------------//
 

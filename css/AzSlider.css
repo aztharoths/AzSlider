@@ -1,3 +1,4 @@
+/*-------------------- AZSLIDER --------------------*/
 .AzSlider,
 .AzSlider * {
   margin: 0;
@@ -11,6 +12,7 @@
   position: relative;
 }
 
+/*-------------------- AZSLIDES --------------------*/
 .AzSlider__AzSlides-container {
   position: relative;
   display: flex;
@@ -26,5 +28,38 @@
   align-items: center;
   justify-content: center;
 }
+
+/*-------------------- /AZSLIDES --------------------*/
+/*-------------------- NAVIGATION --------------------*/
+.AzSlider__navButton-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.AzSlider__navButton-container--prev {
+  left: 10px;
+}
+
+.AzSlider__navButton-container--next {
+  right: 10px;
+}
+
+.AzSlider__navButton-container__button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.AzSlider__navButton-container__button--hidden {
+  display: none;
+}
+
+/*-------------------- /NAVIGATION --------------------*/
+/*-------------------- /AZSLIDER --------------------*/
 
 /*# sourceMappingURL=AzSlider.css.map */

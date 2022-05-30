@@ -5,7 +5,7 @@ import AutoMoveDirection from "./AutoMoveDirection.js";
 const defaultOptions = {
     AzSlidesToShow: 3,
     AzSlidesToMove: 3,
-    navigation: false,
+    navigation: true,
     prevButtonInnerHTML: "<",
     nextButtonInnerHTML: ">",
     transitionDuration: 300,
@@ -15,10 +15,11 @@ const defaultOptions = {
     autoMoveDelay: 5000,
     mouseStopAutoMove: true,
     pagination: false,
-    scroller: true,
+    scroller: false,
     scrollerSpeed: 10,
     scrollerPixelsToMove: 1,
     mouseStopScroller: true,
+    responsive: true,
 };
 
 export default class AzSlider {
@@ -131,6 +132,14 @@ export default class AzSlider {
         }
 
         //-------------------- /SCROLLER --------------------//
+
+        //-------------------- RESPONSIVE --------------------//
+
+        if (this.options.responsive) {
+            this.savedWindowWidth = window.innerWidth;
+            this.responsiveInterval = this.#createResponsiveInterval();
+        }
+        //-------------------- /RESPONSIVE --------------------//
     }
 
     //-------------------- SAVE SLIDES --------------------//
@@ -537,4 +546,36 @@ export default class AzSlider {
         return scrollerInterval;
     }
     //-------------------- /SCROLLER --------------------//
+
+    //-------------------- RESPONSIVE --------------------//
+
+    #createResponsiveInterval() {
+        const responsiveInterval = setInterval(() => {
+            const newWindowWidth = window.innerWidth;
+            if (newWindowWidth === this.savedWindowWidth) return;
+            this.savedWindowWidth = newWindowWidth;
+            this.#resizeAzSlider();
+        }, 100);
+    }
+
+    #resizeAzSlider() {
+        this.#resizeAzSlides();
+        this.#resizeAzSlidesContainer();
+        this.#pauseTransition();
+        this.#moveTo(this.position);
+    }
+
+    #resizeAzSlides() {
+        this.AzSlideWidth = this.savedWindowWidth / this.options.AzSlidesToShow;
+        this.AzSlides.forEach((azSlide) => {
+            azSlide.resize(this.AzSlideWidth);
+        });
+    }
+    #resizeAzSlidesContainer() {
+        const newWidth = this.AzSlideWidth * this.AzSlidesCount;
+        this.AzSlidesContainer.style.width = newWidth + "px";
+        this.AzSliderWidth = newWidth;
+    }
+
+    //-------------------- /RESPONSIVE --------------------//
 }

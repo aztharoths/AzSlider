@@ -60,6 +60,29 @@
 }
 
 /*-------------------- /NAVIGATION --------------------*/
+/*-------------------- PAGINATION --------------------*/
+.AzSlider__pagination {
+  width: 100px;
+  height: 20px;
+  background-color: red;
+  margin: 10px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.AzSlider__pagination__cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: blue;
+}
+
+.AzSlider__pagination__cell--active {
+  background-color: green;
+}
+
+/*-------------------- /PAGINATION --------------------*/
 /*-------------------- /AZSLIDER --------------------*/
 
 /*# sourceMappingURL=AzSlider.css.map */

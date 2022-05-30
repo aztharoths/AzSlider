@@ -10,10 +10,11 @@ const defaultOptions = {
     nextButtonInnerHTML: ">",
     transitionDuration: 300,
     transitionTimingFunction: "linear",
-    infiniteLoop: true,
+    infiniteLoop: false,
     autoMove: false,
     autoMoveDelay: 5000,
     mouseStopAutoMove: true,
+    pagination: true,
 };
 
 export default class AzSlider {
@@ -93,6 +94,16 @@ export default class AzSlider {
         }
 
         //-------------------- /AUTOMOVE --------------------//
+
+        //-------------------- PAGINATION --------------------//
+
+        if (this.options.pagination) {
+            this.page = 1;
+            this.paginationCells = this.#createPagination();
+            this.#updatePagination();
+        }
+
+        //-------------------- /PAGINATION --------------------//
     }
 
     //-------------------- SAVE SLIDES --------------------//
@@ -233,6 +244,12 @@ export default class AzSlider {
         }
 
         //-------------------- /MANAGE POSITION --------------------//
+
+        //-------------------- MANAGE PAGINATION --------------------//
+
+        if (this.options.pagination) this.#nextPage();
+
+        //-------------------- /MANAGE PAGINATION --------------------//
     }
     #moveBackward() {
         //-------------------- IS BUTTON ACTIVE --------------------//
@@ -277,6 +294,12 @@ export default class AzSlider {
         }
 
         //-------------------- /MANAGE POSITION --------------------//
+
+        //-------------------- MANAGE PAGINATION --------------------//
+
+        if (this.options.pagination) this.#prevPage();
+
+        //-------------------- /MANAGE PAGINATION --------------------//
     }
 
     #prevButtonFunction() {
@@ -413,4 +436,51 @@ export default class AzSlider {
         return autoMoveInterval;
     }
     //-------------------- /AUTOMOVE --------------------//
+
+    //-------------------- PAGINATION --------------------//
+
+    #createPagination() {
+        const pagination = Utils.createElt("div", "AzSlider__pagination");
+        this.AzSlider.appendChild(pagination);
+        let firstPage = 1;
+        const pages =
+            firstPage +
+            (this.savedSlides.length - this.options.AzSlidesToShow) / this.options.AzSlidesToMove;
+        const paginationCells = [];
+        for (let i = 0; i < pages; i++) {
+            const paginationCell = Utils.createElt("div", "AzSlider__pagination__cell");
+            pagination.appendChild(paginationCell);
+            paginationCells.push(paginationCell);
+        }
+        return paginationCells;
+    }
+    #nextPage() {
+        let actualPage = this.page;
+        actualPage++;
+        if (actualPage > this.paginationCells.length) {
+            actualPage = 1;
+        }
+        this.page = actualPage;
+        this.#updatePagination();
+    }
+    #prevPage() {
+        let actualPage = this.page;
+        actualPage--;
+        if (actualPage < 1) {
+            actualPage = this.paginationCells.length;
+        }
+        this.page = actualPage;
+        this.#updatePagination();
+    }
+    #updatePagination() {
+        for (let i = 0; i < this.paginationCells.length; i++) {
+            if (i === this.page - 1) {
+                this.paginationCells[i].classList.add("AzSlider__pagination__cell--active");
+            } else {
+                this.paginationCells[i].classList.remove("AzSlider__pagination__cell--active");
+            }
+        }
+    }
+
+    //-------------------- /PAGINATION --------------------//
 }

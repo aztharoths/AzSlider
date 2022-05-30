@@ -5,7 +5,7 @@ import AutoMoveDirection from "./AutoMoveDirection.js";
 const defaultOptions = {
     AzSlidesToShow: 3,
     AzSlidesToMove: 3,
-    navigation: true,
+    navigation: false,
     prevButtonInnerHTML: "<",
     nextButtonInnerHTML: ">",
     transitionDuration: 300,
@@ -14,7 +14,11 @@ const defaultOptions = {
     autoMove: false,
     autoMoveDelay: 5000,
     mouseStopAutoMove: true,
-    pagination: true,
+    pagination: false,
+    scroller: true,
+    scrollerSpeed: 10,
+    scrollerPixelsToMove: 1,
+    mouseStopScroller: true,
 };
 
 export default class AzSlider {
@@ -33,6 +37,11 @@ export default class AzSlider {
      * @param {Boolean} options.autoMove
      * @param {Number} options.autoMoveDelay in ms
      * @param {Boolean} options.mouseStopAutoMove
+     * @param {Boolean} options.pagination
+     * @param {Boolean} options.scroller
+     * @param {Number} options.scrollerSpeed in ms
+     * @param {Number} options.scrollerPixelsToMove in pixels
+     * @param {Boolean} options.mouseStopScroller
      */
     constructor(slideContainer, options) {
         //-------------------- OPTIONS --------------------//
@@ -64,7 +73,7 @@ export default class AzSlider {
 
         //-------------------- CREATE NAVIGATION --------------------//
 
-        if (this.options.navigation) {
+        if (this.options.navigation && !this.options.scroller) {
             [this.prevButton, this.nextButton, this.buttonIsActive] = this.#createNavigation();
         }
 
@@ -79,7 +88,7 @@ export default class AzSlider {
 
         //-------------------- AUTOMOVE --------------------//
 
-        if (this.options.autoMove) {
+        if (this.options.autoMove && !this.options.scroller) {
             this.autoMoveDirection = AutoMoveDirection.Next;
             this.autoMoveIntervalPaused = false;
             this.autoMoveInterval = this.#autoMove();
@@ -97,13 +106,31 @@ export default class AzSlider {
 
         //-------------------- PAGINATION --------------------//
 
-        if (this.options.pagination) {
+        if (this.options.pagination && !this.options.scroller) {
             this.page = 1;
             this.paginationCells = this.#createPagination();
             this.#updatePagination();
         }
 
         //-------------------- /PAGINATION --------------------//
+
+        //-------------------- SCROLLER --------------------//
+
+        if (this.options.scroller) {
+            this.scrollerPosition = 0;
+            this.scrollerIntervalPaused = false;
+            this.scrollerInterval = this.#createScrollerInterval();
+            if (this.options.mouseStopScroller) {
+                this.AzSlider.addEventListener("mouseenter", (e) => {
+                    this.scrollerIntervalPaused = true;
+                });
+                this.AzSlider.addEventListener("mouseleave", (e) => {
+                    this.scrollerIntervalPaused = false;
+                });
+            }
+        }
+
+        //-------------------- /SCROLLER --------------------//
     }
 
     //-------------------- SAVE SLIDES --------------------//
@@ -123,14 +150,18 @@ export default class AzSlider {
 
     #createAzSlider() {
         const AzSlider = Utils.createElt("section", "AzSlider");
-        const AzSlidesContainer = Utils.createElt("div", "AzSlider__AzSlides-container", {
-            style:
-                "transition: transform " +
-                this.options.transitionDuration +
-                "ms " +
-                this.options.transitionTimingFunction +
-                " 0ms",
-        });
+        const AzSlidesContainer = Utils.createElt(
+            "div",
+            "AzSlider__AzSlides-container",
+            this.options.scroller || {
+                style:
+                    "transition: transform " +
+                    this.options.transitionDuration +
+                    "ms " +
+                    this.options.transitionTimingFunction +
+                    " 0ms",
+            }
+        );
         AzSlider.appendChild(AzSlidesContainer);
         this.slidesContainer.innerHTML = "";
         this.slidesContainer.appendChild(AzSlider);
@@ -165,13 +196,13 @@ export default class AzSlider {
     }
 
     #createAzSlides() {
-        if (this.options.infiniteLoop) this.#duplicatePrevAzSlides();
+        if (this.options.infiniteLoop && !this.options.scroller) this.#duplicatePrevAzSlides();
 
         for (let i = 0; i < this.savedSlides.length; i++) {
             this.#addAzSlide(this.savedSlides[i]);
         }
 
-        if (this.options.infiniteLoop) this.#duplicateNextAzSlides();
+        if (this.options.infiniteLoop || this.options.scroller) this.#duplicateNextAzSlides();
     }
 
     //-------------------- /CREATE AZSLIDES --------------------//
@@ -483,4 +514,27 @@ export default class AzSlider {
     }
 
     //-------------------- /PAGINATION --------------------//
+
+    //-------------------- SCROLLER --------------------//
+
+    #createScrollerInterval() {
+        const scrollerInterval = setInterval(() => {
+            if (this.scrollerIntervalPaused) {
+                return;
+            }
+            let actualScrollerPosition = this.scrollerPosition;
+            actualScrollerPosition += this.options.scrollerPixelsToMove;
+            if (
+                actualScrollerPosition >=
+                this.AzSliderWidth - this.AzSlideWidth * this.options.AzSlidesToShow
+            ) {
+                actualScrollerPosition = 0;
+            }
+            this.AzSlidesContainer.style.transform =
+                "translateX(-" + actualScrollerPosition + "px )";
+            this.scrollerPosition = actualScrollerPosition;
+        }, this.options.scrollerSpeed);
+        return scrollerInterval;
+    }
+    //-------------------- /SCROLLER --------------------//
 }
